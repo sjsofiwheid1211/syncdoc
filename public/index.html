@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nick's Docs</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Roboto', sans-serif; background:#f8f9fa; color:#202124; min-height:100vh; display:flex; flex-direction:column; }
+
+/* ── OVERLAYS ── */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:999; }
+.overlay.hidden { display:none; }
+.modal { background:white; padding:2rem; max-width:460px; width:90%; border-radius:8px; box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+.modal h2 { font-family:'Google Sans',sans-serif; font-size:1.25rem; margin-bottom:0.4rem; color:#202124; }
+.modal p { font-size:0.85rem; color:#5f6368; margin-bottom:1.5rem; line-height:1.6; }
+.modal label { display:block; font-size:0.72rem; color:#5f6368; margin-bottom:0.3rem; font-weight:500; }
+.modal input { width:100%; border:1px solid #dadce0; padding:0.6rem 0.8rem; border-radius:4px; outline:none; margin-bottom:1rem; font-size:0.9rem; transition:border-color 0.2s; font-family:'Roboto',sans-serif; }
+.modal input:focus { border-color:#1a73e8; box-shadow:0 0 0 2px rgba(26,115,232,0.2); }
+.btn-primary { width:100%; padding:0.7rem; background:#1a73e8; color:white; border:none; border-radius:4px; font-size:0.9rem; cursor:pointer; font-family:'Google Sans',sans-serif; font-weight:500; transition:background 0.2s; margin-bottom:0.5rem; }
+.btn-primary:hover { background:#1557b0; }
+.config-note { margin-top:0.5rem; padding:0.8rem; background:#fff8e1; border-left:3px solid #f9ab00; font-size:0.78rem; line-height:1.6; color:#7a6200; border-radius:0 4px 4px 0; }
+
+/* Auth overlay */
+.auth-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:998; }
+.auth-overlay.hidden { display:none; }
+.auth-card { background:white; padding:2.5rem 2rem; max-width:360px; width:90%; border-radius:8px; box-shadow:0 8px 32px rgba(0,0,0,0.2); text-align:center; }
+.auth-logo { display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-bottom:1.5rem; }
+.auth-logo svg { width:40px; height:40px; }
+.auth-logo-text { font-family:'Google Sans',sans-serif; font-size:1.4rem; color:#202124; }
+.auth-logo-text span { color:#1a73e8; }
+.auth-card h2 { font-family:'Google Sans',sans-serif; font-size:1.1rem; margin-bottom:0.5rem; }
+.auth-card p { font-size:0.82rem; color:#5f6368; margin-bottom:1.8rem; line-height:1.6; }
+.google-btn { display:flex; align-items:center; justify-content:center; gap:0.75rem; width:100%; padding:0.7rem 1rem; background:white; color:#3c4043; border:1px solid #dadce0; border-radius:4px; font-size:0.9rem; cursor:pointer; transition:box-shadow 0.2s; margin-bottom:0.8rem; font-family:'Google Sans',sans-serif; font-weight:500; }
+.google-btn:hover { box-shadow:0 2px 8px rgba(0,0,0,0.15); background:#f8f9fa; }
+.google-icon { width:20px; height:20px; flex-shrink:0; }
+.divider { display:flex; align-items:center; gap:0.8rem; margin:0.5rem 0 0.8rem; }
+.divider::before,.divider::after { content:''; flex:1; height:1px; background:#e0e0e0; }
+.divider span { font-size:0.75rem; color:#9aa0a6; }
+.anon-btn { width:100%; padding:0.6rem; background:none; border:1px solid #dadce0; border-radius:4px; font-size:0.82rem; color:#5f6368; cursor:pointer; transition:all 0.2s; font-family:'Roboto',sans-serif; }
+.anon-btn:hover { border-color:#202124; color:#202124; }
+.auth-loading { font-size:0.8rem; color:#5f6368; margin-top:0.8rem; display:none; }
+
+/* ── PAGES ── */
+.page { display:none; flex:1; flex-direction:column; }
+.page.active { display:flex; }
+
+/* ── GLOBAL HEADER ── */
+header { background:white; border-bottom:1px solid #e0e0e0; padding:0 1.5rem; height:56px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+.header-left { display:flex; align-items:center; gap:0.75rem; cursor:pointer; }
+.header-logo { display:flex; align-items:center; gap:0.5rem; }
+.header-logo svg { width:30px; height:30px; }
+.header-logo-text { font-family:'Google Sans',sans-serif; font-size:1.15rem; color:#202124; }
+.header-logo-text span { color:#1a73e8; }
+.header-right { display:flex; align-items:center; gap:1rem; }
+.status-pill { display:flex; align-items:center; gap:0.4rem; font-size:0.75rem; color:#5f6368; background:#f1f3f4; padding:0.25rem 0.7rem; border-radius:20px; }
+.conn-dot { width:7px; height:7px; border-radius:50%; background:#9aa0a6; transition:background 0.3s; }
+.conn-dot.online { background:#1e8e3e; }
+.user-count-badge { font-size:0.75rem; color:#5f6368; }
+.user-chip { display:flex; align-items:center; gap:0.5rem; cursor:pointer; position:relative; padding:0.3rem 0.5rem; border-radius:20px; transition:background 0.15s; }
+.user-chip:hover { background:#f1f3f4; }
+.user-avatar { width:32px; height:32px; border-radius:50%; object-fit:cover; }
+.user-avatar-ph { width:32px; height:32px; border-radius:50%; background:#1a73e8; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; color:white; }
+.user-dropdown { position:absolute; top:calc(100% + 6px); right:0; background:white; border:1px solid #e0e0e0; border-radius:8px; min-width:200px; box-shadow:0 4px 16px rgba(0,0,0,0.15); overflow:hidden; display:none; z-index:200; }
+.user-dropdown.open { display:block; }
+.user-dropdown-info { padding:1rem; border-bottom:1px solid #f1f3f4; }
+.user-dropdown-info strong { display:block; font-size:0.9rem; color:#202124; margin-bottom:0.15rem; }
+.user-dropdown-info small { font-size:0.75rem; color:#5f6368; }
+.user-dropdown-btn { display:block; width:100%; text-align:left; padding:0.7rem 1rem; background:none; border:none; font-size:0.85rem; cursor:pointer; color:#202124; transition:background 0.15s; }
+.user-dropdown-btn:hover { background:#f1f3f4; }
+.user-dropdown-btn.danger { color:#d93025; }
+
+/* ── HOME PAGE ── */
+#homePage { background:#f8f9fa; }
+.home-body { flex:1; padding:2.5rem 2rem; max-width:900px; margin:0 auto; width:100%; }
+.new-doc-section { margin-bottom:2.5rem; }
+.new-doc-section h2 { font-family:'Google Sans',sans-serif; font-size:0.95rem; color:#202124; margin-bottom:1rem; font-weight:500; }
+.new-doc-cards { display:flex; gap:1rem; flex-wrap:wrap; }
+.new-doc-card { display:flex; flex-direction:column; align-items:center; gap:0.5rem; cursor:pointer; }
+.new-doc-card:hover .doc-thumb { border-color:#1a73e8; box-shadow:0 2px 8px rgba(26,115,232,0.2); }
+.doc-thumb { width:120px; height:155px; background:white; border:2px solid #e0e0e0; border-radius:4px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; font-size:2.5rem; }
+.new-doc-card span { font-size:0.8rem; color:#202124; }
+
+.recent-section h2 { font-family:'Google Sans',sans-serif; font-size:0.95rem; color:#202124; margin-bottom:1rem; font-weight:500; }
+.doc-list { display:flex; flex-direction:column; gap:0; }
+.doc-row { display:flex; align-items:center; padding:0.6rem 0.8rem; border-radius:4px; cursor:pointer; transition:background 0.15s; gap:1rem; }
+.doc-row:hover { background:#f1f3f4; }
+.doc-row-icon { width:36px; height:36px; background:#1a73e8; border-radius:4px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.doc-row-icon svg { width:20px; height:20px; fill:white; }
+.doc-row-info { flex:1; min-width:0; }
+.doc-row-title { font-size:0.9rem; color:#202124; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.doc-row-meta { font-size:0.75rem; color:#5f6368; margin-top:0.1rem; }
+.doc-row-del { background:none; border:none; cursor:pointer; color:#9aa0a6; padding:0.3rem; border-radius:50%; transition:all 0.15s; font-size:1rem; width:32px; height:32px; display:flex; align-items:center; justify-content:center; }
+.doc-row-del:hover { background:#fce8e6; color:#d93025; }
+.empty-state { text-align:center; padding:3rem 1rem; color:#9aa0a6; font-size:0.85rem; line-height:2; }
+.empty-state .big { font-size:2.5rem; display:block; margin-bottom:0.5rem; }
+
+/* ── NEW DOC MODAL ── */
+.new-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; z-index:998; }
+.new-modal-overlay.hidden { display:none; }
+.new-modal { background:white; padding:1.8rem; max-width:360px; width:90%; border-radius:8px; box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+.new-modal h3 { font-family:'Google Sans',sans-serif; font-size:1rem; margin-bottom:1rem; }
+.new-modal input { width:100%; border:1px solid #dadce0; padding:0.6rem 0.8rem; border-radius:4px; outline:none; margin-bottom:1rem; font-size:0.9rem; font-family:'Roboto',sans-serif; }
+.new-modal input:focus { border-color:#1a73e8; }
+.new-modal-btns { display:flex; justify-content:flex-end; gap:0.5rem; }
+.btn-flat { padding:0.5rem 1rem; background:none; border:none; border-radius:4px; font-size:0.85rem; cursor:pointer; color:#5f6368; font-family:'Google Sans',sans-serif; font-weight:500; }
+.btn-flat:hover { background:#f1f3f4; }
+.btn-blue { padding:0.5rem 1rem; background:#1a73e8; color:white; border:none; border-radius:4px; font-size:0.85rem; cursor:pointer; font-family:'Google Sans',sans-serif; font-weight:500; }
+.btn-blue:hover { background:#1557b0; }
+
+/* ── EDITOR PAGE ── */
+#editorPage { background:#f8f9fa; }
+
+/* Editor header (doc title + back) */
+.editor-header { background:white; border-bottom:1px solid #e0e0e0; padding:0 1.5rem; height:56px; display:flex; align-items:center; gap:1rem; position:sticky; top:56px; z-index:90; }
+.back-btn { background:none; border:none; cursor:pointer; color:#5f6368; padding:0.4rem; border-radius:50%; transition:background 0.15s; display:flex; align-items:center; }
+.back-btn:hover { background:#f1f3f4; }
+.back-btn svg { width:20px; height:20px; fill:#5f6368; }
+.doc-title-input { border:none; outline:none; font-family:'Google Sans',sans-serif; font-size:1.1rem; color:#202124; flex:1; background:transparent; }
+.doc-title-input::placeholder { color:#bdc1c6; }
+.editor-meta { font-size:0.75rem; color:#5f6368; white-space:nowrap; }
+.typing-indicator { font-size:0.75rem; color:#1a73e8; white-space:nowrap; display:none; }
+.typing-indicator.visible { display:block; }
+
+/* Formatting toolbar */
+.toolbar { background:white; border-bottom:1px solid #e0e0e0; padding:0.4rem 1.5rem; display:flex; align-items:center; gap:0.25rem; flex-wrap:wrap; position:sticky; top:112px; z-index:89; }
+.tb-sep { width:1px; height:24px; background:#e0e0e0; margin:0 0.25rem; }
+.tb-btn { background:none; border:none; cursor:pointer; padding:0.3rem 0.5rem; border-radius:4px; color:#3c4043; font-size:0.85rem; font-weight:500; transition:background 0.15s; display:flex; align-items:center; gap:0.3rem; min-width:32px; justify-content:center; font-family:'Roboto',sans-serif; }
+.tb-btn:hover { background:#f1f3f4; }
+.tb-btn.active { background:#e8f0fe; color:#1a73e8; }
+.tb-btn svg { width:18px; height:18px; fill:currentColor; }
+.font-size-select { border:1px solid #e0e0e0; border-radius:4px; padding:0.25rem 0.4rem; font-size:0.82rem; outline:none; cursor:pointer; color:#3c4043; background:white; font-family:'Roboto',sans-serif; }
+.font-size-select:focus { border-color:#1a73e8; }
+
+/* Color picker */
+.color-wrap { position:relative; display:inline-flex; align-items:center; }
+.color-picker-popup {
+  position:absolute; top:calc(100% + 4px); left:0;
+  background:white; border:1px solid #dadce0; border-radius:4px;
+  padding:8px 10px 10px; box-shadow:0 2px 10px rgba(0,0,0,0.2);
+  display:none; z-index:300; width:258px;
+}
+.color-picker-popup.open { display:block; }
+.color-picker-none {
+  display:flex; align-items:center; gap:8px;
+  padding:5px 4px; cursor:pointer; border-radius:3px;
+  font-size:13px; color:#202124; margin-bottom:7px;
+  font-family:'Roboto',sans-serif;
+}
+.color-picker-none:hover { background:#f1f3f4; }
+.color-picker-none-icon {
+  width:22px; height:22px; border-radius:50%; flex-shrink:0;
+  position:relative; overflow:hidden;
+  border:1px solid #dadce0;
+  background:white;
+}
+.color-picker-none-icon::after {
+  content:''; position:absolute;
+  top:50%; left:0; right:0; height:2px;
+  background:#d93025;
+  transform:rotate(-45deg) translate(-2px, -1px);
+  transform-origin:center;
+}
+/* 10×10 grid: each cell 22px + 1.5px gap = 235px wide */
+.color-grid {
+  display:grid;
+  grid-template-columns:repeat(10, 22px);
+  grid-template-rows:repeat(8, 22px);
+  gap:1.5px;
+}
+.cp-color {
+  width:22px; height:22px; border-radius:50%;
+  cursor:pointer; position:relative;
+  border:1px solid rgba(0,0,0,0.1);
+  transition:transform 0.1s, border-color 0.1s;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.cp-color:hover { transform:scale(1.18); z-index:2; border-color:#5f6368 !important; }
+.cp-color.selected::after {
+  content:'✓';
+  font-size:13px; font-weight:700; line-height:1;
+  color:white;
+  text-shadow:0 1px 2px rgba(0,0,0,0.5);
+}
+.cp-color.light-color { border-color:rgba(0,0,0,0.15); }
+.cp-color.selected.light-color::after { color:#202124; text-shadow:none; }
+
+/* Toolbar color button: icon on top, thin color bar below */
+.tb-color-btn {
+  display:inline-flex; flex-direction:column; align-items:center;
+  gap:1px; background:none; border:none; cursor:pointer;
+  padding:4px 6px 3px; border-radius:4px; transition:background 0.15s;
+}
+.tb-color-btn:hover { background:#f1f3f4; }
+.tb-color-btn-top { display:flex; align-items:center; gap:0px; }
+.tb-color-btn-top > svg:first-child { width:17px; height:17px; }
+.drop-arr { width:8px; height:8px; fill:#5f6368; margin-left:1px; }
+.color-bar { height:3px; border-radius:1px; margin-top:1px; transition:background 0.2s; }
+
+/* Tabs */
+.tabs-bar { background:white; border-bottom:1px solid #e0e0e0; padding:0 1.5rem; display:flex; align-items:flex-end; gap:0; position:sticky; top:152px; z-index:88; overflow-x:auto; }
+.tab { padding:0.5rem 1rem; font-size:0.85rem; cursor:pointer; border-bottom:3px solid transparent; color:#5f6368; white-space:nowrap; transition:all 0.15s; display:flex; align-items:center; gap:0.5rem; }
+.tab:hover { background:#f1f3f4; color:#202124; }
+.tab.active { border-bottom-color:#1a73e8; color:#1a73e8; font-weight:500; }
+.tab-close { background:none; border:none; cursor:pointer; color:#9aa0a6; padding:0.1rem 0.2rem; border-radius:3px; font-size:0.8rem; line-height:1; transition:all 0.15s; }
+.tab-close:hover { background:#fce8e6; color:#d93025; }
+.tab-add { padding:0.5rem 0.8rem; font-size:1.2rem; cursor:pointer; color:#5f6368; border-bottom:3px solid transparent; transition:all 0.15s; }
+.tab-add:hover { background:#f1f3f4; color:#202124; }
+
+/* Editor body */
+.editor-body { flex:1; display:flex; justify-content:center; padding:2rem 1rem 4rem; overflow-y:auto; }
+.page-wrap { width:100%; max-width:816px; }
+.doc-page { background:white; min-height:1056px; padding:72px 96px; box-shadow:0 1px 4px rgba(0,0,0,0.15); border-radius:2px; outline:none; font-size:11pt; line-height:1.5; color:#202124; font-family:'Roboto',sans-serif; word-break:break-word; }
+.doc-page:focus { outline:none; }
+.doc-page[data-placeholder]:empty::before { content:attr(data-placeholder); color:#bdc1c6; pointer-events:none; }
+
+/* Saved flash */
+.saved-flash { position:fixed; bottom:1.5rem; right:1.5rem; background:#202124; color:white; padding:0.5rem 1rem; border-radius:4px; font-size:0.78rem; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:50; }
+.saved-flash.show { opacity:1; }
+
+/* Sync badge */
+.sync-badge { position:fixed; bottom:1.5rem; left:1.5rem; background:#e8f0fe; color:#1a73e8; padding:0.4rem 0.8rem; border-radius:20px; font-size:0.75rem; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:50; display:flex; align-items:center; gap:0.4rem; }
+.sync-badge.show { opacity:1; }
+
+@media(max-width:768px) {
+  .doc-page { padding:40px 32px; }
+  .toolbar { top:104px; }
+  .tabs-bar { top:144px; }
+}
+
+/* ── SHARE BUTTON ── */
+.share-btn {
+  display:flex; align-items:center; gap:6px;
+  background:#c2e0ff; color:#001d35;
+  border:none; border-radius:20px;
+  padding:0 4px 0 12px; height:36px;
+  font-family:'Google Sans',sans-serif; font-size:0.875rem; font-weight:500;
+  cursor:pointer; transition:background 0.15s;
+  white-space:nowrap;
+}
+.share-btn:hover { background:#a8d4ff; }
+.share-btn svg { width:18px; height:18px; fill:#001d35; }
+.share-btn-arrow {
+  display:flex; align-items:center; justify-content:center;
+  width:28px; height:28px; border-radius:50%;
+  background:rgba(0,0,0,0.06);
+}
+.share-btn-arrow svg { width:16px; height:16px; fill:#001d35; }
+
+/* ── SHARE MODAL ── */
+.share-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.5);
+  display:flex; align-items:center; justify-content:center;
+  z-index:990; backdrop-filter:blur(2px);
+}
+.share-overlay.hidden { display:none; }
+.share-modal {
+  background:white; border-radius:8px;
+  width:560px; max-width:95vw;
+  box-shadow:0 8px 32px rgba(0,0,0,0.2);
+  font-family:'Roboto',sans-serif;
+  overflow:hidden;
+}
+.share-modal-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:20px 24px 16px;
+}
+.share-modal-header h2 {
+  font-family:'Google Sans',sans-serif; font-size:1rem;
+  color:#202124; font-weight:500; margin:0;
+}
+.share-modal-header-icons { display:flex; gap:4px; }
+.share-icon-btn {
+  background:none; border:none; cursor:pointer;
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  transition:background 0.15s; color:#5f6368;
+}
+.share-icon-btn:hover { background:#f1f3f4; }
+.share-icon-btn svg { width:20px; height:20px; fill:#5f6368; }
+
+/* Invite input row */
+.share-invite-row {
+  display:flex; align-items:center; gap:8px;
+  padding:0 24px 16px;
+}
+.share-email-box {
+  flex:1; border:1px solid #dadce0; border-radius:4px;
+  padding:8px 12px; font-size:0.875rem; outline:none;
+  font-family:'Roboto',sans-serif; color:#202124;
+  transition:border-color 0.2s;
+}
+.share-email-box:focus { border-color:#1a73e8; box-shadow:0 0 0 2px rgba(26,115,232,0.2); }
+.share-email-box::placeholder { color:#9aa0a6; }
+.share-role-select {
+  border:1px solid #dadce0; border-radius:4px;
+  padding:8px 10px; font-size:0.875rem;
+  font-family:'Roboto',sans-serif; color:#202124;
+  outline:none; cursor:pointer; background:white;
+  transition:border-color 0.2s; white-space:nowrap;
+}
+.share-role-select:focus { border-color:#1a73e8; }
+
+/* Access list */
+.share-access-section { padding:0 24px 8px; }
+.share-access-title {
+  font-size:0.8rem; color:#5f6368; font-weight:500;
+  margin-bottom:12px; letter-spacing:0.01em;
+}
+.share-user-row {
+  display:flex; align-items:center; gap:12px;
+  padding:6px 0; min-height:44px;
+}
+.share-user-avatar {
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.875rem; font-weight:700; color:white;
+  flex-shrink:0; font-family:'Google Sans',sans-serif;
+}
+.share-user-info { flex:1; min-width:0; }
+.share-user-name { font-size:0.875rem; color:#202124; }
+.share-user-email { font-size:0.75rem; color:#5f6368; margin-top:1px; }
+.share-user-role { font-size:0.875rem; color:#5f6368; white-space:nowrap; }
+
+/* General access */
+.share-divider { height:1px; background:#e0e0e0; margin:8px 0; }
+.share-general-section { padding:8px 24px 16px; }
+.share-general-title {
+  font-size:0.8rem; color:#5f6368; font-weight:500;
+  margin-bottom:12px;
+}
+.share-general-row { display:flex; align-items:center; gap:12px; }
+.share-lock-icon {
+  width:36px; height:36px; border-radius:50%;
+  background:#f1f3f4; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.share-lock-icon svg { width:20px; height:20px; fill:#5f6368; }
+.share-general-info { flex:1; }
+.share-general-type {
+  display:flex; align-items:center; gap:4px;
+  font-size:0.875rem; color:#202124; cursor:pointer;
+  width:fit-content;
+}
+.share-general-type svg { width:16px; height:16px; fill:#5f6368; }
+.share-general-desc { font-size:0.75rem; color:#5f6368; margin-top:2px; }
+
+/* Footer */
+.share-footer {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 24px 20px;
+}
+.share-copy-link-btn {
+  display:flex; align-items:center; gap:6px;
+  background:none; border:1px solid #dadce0; border-radius:20px;
+  padding:8px 16px; font-size:0.875rem; color:#1a73e8;
+  font-family:'Google Sans',sans-serif; font-weight:500;
+  cursor:pointer; transition:background 0.15s;
+}
+.share-copy-link-btn:hover { background:#f1f3f4; }
+.share-copy-link-btn svg { width:18px; height:18px; fill:#1a73e8; }
+.share-done-btn {
+  background:#1a73e8; color:white; border:none;
+  border-radius:20px; padding:8px 24px;
+  font-size:0.875rem; font-family:'Google Sans',sans-serif; font-weight:500;
+  cursor:pointer; transition:background 0.15s;
+}
+.share-done-btn:hover { background:#1557b0; }
+
+/* Send invite sub-screen */
+.share-send-screen { display:none; }
+.share-send-screen.active { display:block; }
+.share-main-screen { display:block; }
+.share-main-screen.hidden-screen { display:none; }
+.share-send-header {
+  display:flex; align-items:center; gap:8px;
+  padding:20px 24px 16px;
+}
+.share-back-btn {
+  background:none; border:none; cursor:pointer;
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  transition:background 0.15s;
+}
+.share-back-btn:hover { background:#f1f3f4; }
+.share-back-btn svg { width:20px; height:20px; fill:#5f6368; }
+.share-send-title {
+  font-family:'Google Sans',sans-serif; font-size:1rem;
+  color:#202124; font-weight:500; flex:1;
+}
+.share-tag-row {
+  display:flex; align-items:center; gap:8px;
+  padding:0 24px 16px; flex-wrap:wrap;
+}
+.share-email-tag {
+  display:flex; align-items:center; gap:4px;
+  background:#e8f0fe; border-radius:16px;
+  padding:4px 8px 4px 4px; font-size:0.875rem; color:#1a73e8;
+}
+.share-email-tag .tag-avatar {
+  width:22px; height:22px; border-radius:50%;
+  background:#1a73e8; display:flex; align-items:center; justify-content:center;
+  font-size:0.7rem; font-weight:700; color:white;
+}
+.share-tag-remove {
+  background:none; border:none; cursor:pointer;
+  color:#5f6368; font-size:0.9rem; padding:0 2px;
+  line-height:1; display:flex; align-items:center;
+}
+.share-role-select-tag {
+  border:1px solid #dadce0; border-radius:4px;
+  padding:6px 10px; font-size:0.875rem;
+  font-family:'Roboto',sans-serif; outline:none; cursor:pointer; background:white;
+}
+.share-checkbox-row {
+  display:flex; align-items:center; gap:8px;
+  padding:0 24px 12px; font-size:0.875rem; color:#202124;
+}
+.share-checkbox-row input[type=checkbox] {
+  width:18px; height:18px; accent-color:#1a73e8; cursor:pointer; margin:0;
+}
+.share-message-box {
+  margin:0 24px 16px;
+  border:1px solid #dadce0; border-radius:4px;
+  padding:10px 12px; font-size:0.875rem;
+  font-family:'Roboto',sans-serif; color:#202124;
+  resize:none; width:calc(100% - 48px); outline:none;
+  min-height:100px; transition:border-color 0.2s;
+}
+.share-message-box:focus { border-color:#1a73e8; }
+.share-message-box::placeholder { color:#9aa0a6; }
+.share-send-footer {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 24px 20px;
+}
+.share-cancel-btn {
+  background:none; border:none; cursor:pointer;
+  font-size:0.875rem; color:#1a73e8;
+  font-family:'Google Sans',sans-serif; font-weight:500;
+  padding:8px 16px; border-radius:20px; transition:background 0.15s;
+}
+.share-cancel-btn:hover { background:#f1f3f4; }
+.share-send-btn {
+  background:#1a73e8; color:white; border:none;
+  border-radius:20px; padding:8px 24px;
+  font-size:0.875rem; font-family:'Google Sans',sans-serif; font-weight:500;
+  cursor:pointer; transition:background 0.15s;
+}
+.share-send-btn:hover { background:#1557b0; }
+</style>
+</head>
+<body>
+
+<!-- ══ FIREBASE CONFIG ══ -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>🔥 Firebase 설정</h2>
+    <p>실시간 동기화 및 구글 로그인을 위해 Firebase 정보를 입력해 주세요.</p>
+    <label>API Key</label>
+    <input id="cfg-apiKey" placeholder="AIzaSy..." />
+    <label>Project ID</label>
+    <input id="cfg-projectId" placeholder="nick-s-docs" />
+    <label>Auth Domain</label>
+    <input id="cfg-authDomain" placeholder="nick-s-docs.firebaseapp.com" />
+    <button class="btn-primary" id="btnFirebase">계속하기</button>
+
+  </div>
+</div>
+
+<!-- ══ AUTH ══ -->
+<div class="auth-overlay hidden" id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg viewBox="0 0 48 48"><path fill="#4285F4" d="M44 24c0-1.5-.1-3-.4-4.4H24v8.3h11.3c-.5 2.6-2 4.8-4.2 6.3v5.2h6.8C41.4 35.5 44 30.2 44 24z"/><path fill="#34A853" d="M24 44c5.7 0 10.5-1.9 14-5.1l-6.8-5.3c-1.9 1.3-4.3 2-7.2 2-5.5 0-10.2-3.7-11.9-8.8H5.1v5.5C8.6 39.9 15.8 44 24 44z"/><path fill="#FBBC05" d="M12.1 26.8c-.4-1.3-.7-2.6-.7-4s.2-2.7.7-4v-5.5H5.1C3.8 16.1 3 19.9 3 24s.8 7.9 2.1 10.7l7-5.4z"/><path fill="#EA4335" d="M24 10.8c3.1 0 5.9 1.1 8.1 3.2l6-6C34.5 4.5 29.7 2.4 24 2.4 15.8 2.4 8.6 6.5 5.1 13.3l7 5.5c1.7-5.1 6.4-8 11.9-8z"/></svg>
+      <div class="auth-logo-text">Nick's <span>Docs</span></div>
+    </div>
+    <h2>로그인</h2>
+    <p>구글 계정으로 로그인하면 모든 기기에서<br>내 문서에 접근할 수 있어요.</p>
+    <button class="google-btn" id="btnGoogleSignIn">
+      <svg class="google-icon" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Google 계정으로 로그인
+    </button>
+    <div class="divider"><span>또는</span></div>
+    <button class="anon-btn" id="btnAnon">로그인 없이 계속하기 (익명)</button>
+    <div class="auth-loading" id="authLoading">로그인 중...</div>
+  </div>
+</div>
+
+<!-- ══ NEW DOC MODAL ══ -->
+<div class="new-modal-overlay hidden" id="newDocOverlay">
+  <div class="new-modal">
+    <h3>새 문서 만들기</h3>
+    <input id="newDocTitle" placeholder="제목 없는 문서" autocomplete="off" />
+    <div class="new-modal-btns">
+      <button class="btn-flat" id="btnCancelNew">취소</button>
+      <button class="btn-blue" id="btnCreate">만들기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GLOBAL HEADER ══ -->
+<header>
+  <div class="header-left" id="brandHome">
+    <div class="header-logo">
+      <svg viewBox="0 0 48 48" width="30" height="30"><path fill="#4285F4" d="M44 24c0-1.5-.1-3-.4-4.4H24v8.3h11.3c-.5 2.6-2 4.8-4.2 6.3v5.2h6.8C41.4 35.5 44 30.2 44 24z"/><path fill="#34A853" d="M24 44c5.7 0 10.5-1.9 14-5.1l-6.8-5.3c-1.9 1.3-4.3 2-7.2 2-5.5 0-10.2-3.7-11.9-8.8H5.1v5.5C8.6 39.9 15.8 44 24 44z"/><path fill="#FBBC05" d="M12.1 26.8c-.4-1.3-.7-2.6-.7-4s.2-2.7.7-4v-5.5H5.1C3.8 16.1 3 19.9 3 24s.8 7.9 2.1 10.7l7-5.4z"/><path fill="#EA4335" d="M24 10.8c3.1 0 5.9 1.1 8.1 3.2l6-6C34.5 4.5 29.7 2.4 24 2.4 15.8 2.4 8.6 6.5 5.1 13.3l7 5.5c1.7-5.1 6.4-8 11.9-8z"/></svg>
+      <div class="header-logo-text">Nick's <span>Docs</span></div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="status-pill"><span class="conn-dot" id="connDot"></span><span id="connLabel">대기 중</span></div>
+    <div class="user-count-badge" id="userCount"></div>
+    <div class="user-chip" id="userChip" style="display:none;">
+      <div class="user-avatar-ph" id="userAvatarPh"></div>
+      <img class="user-avatar" id="userAvatarImg" style="display:none;" alt="" />
+      <div class="user-dropdown" id="userDropdown">
+        <div class="user-dropdown-info">
+          <strong id="dropdownName"></strong>
+          <small id="dropdownEmail"></small>
+        </div>
+        <button class="user-dropdown-btn danger" id="btnSignOut">로그아웃</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════ HOME PAGE ══════════ -->
+<div class="page" id="homePage">
+  <div class="home-body">
+    <div class="new-doc-section">
+      <h2>새 문서 시작</h2>
+      <div class="new-doc-cards">
+        <div class="new-doc-card" id="btnNewDoc">
+          <div class="doc-thumb">＋</div>
+          <span>빈 문서</span>
+        </div>
+      </div>
+    </div>
+    <div class="recent-section">
+      <h2>최근 문서</h2>
+      <div id="recentDocs"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ EDITOR PAGE ══════════ -->
+<div class="page" id="editorPage">
+  <!-- Doc header -->
+  <div class="editor-header">
+    <button class="back-btn" id="btnBack" title="홈으로">
+      <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </button>
+    <input class="doc-title-input" id="docTitle" placeholder="제목 없는 문서" autocomplete="off" />
+    <span class="typing-indicator" id="typingIndicator"></span>
+    <span class="editor-meta" id="editorMeta"></span>
+    <!-- Share button -->
+    <button class="share-btn" id="btnShare">
+      <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+      공유
+      <div class="share-btn-arrow">
+        <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+      </div>
+    </button>
+  </div>
+
+  <!-- Formatting toolbar -->
+  <div class="toolbar">
+    <select class="font-size-select" id="fontSizeSelect" title="글자 크기">
+      <option value="8">8</option><option value="9">9</option><option value="10">10</option>
+      <option value="11" selected>11</option><option value="12">12</option><option value="14">14</option>
+      <option value="18">18</option><option value="24">24</option><option value="30">30</option>
+      <option value="36">36</option><option value="48">48</option><option value="60">60</option>
+      <option value="72">72</option><option value="96">96</option>
+    </select>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" id="tbBold" title="굵게 (Ctrl+B)">
+      <svg viewBox="0 0 24 24"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>
+    </button>
+    <button class="tb-btn" id="tbUnderline" title="밑줄 (Ctrl+U)">
+      <svg viewBox="0 0 24 24"><path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"/></svg>
+    </button>
+    <div class="tb-sep"></div>
+
+    <!-- Text color button: A icon -->
+    <div class="color-wrap" id="textColorWrap">
+      <button class="tb-color-btn" id="tbTextColorApply" title="글자색 적용">
+        <div class="tb-color-btn-top">
+          <!-- A letter SVG -->
+          <svg viewBox="0 0 16 16" width="17" height="17" fill="#202124">
+            <path d="M8 1.5L2 14h2.2l1.1-3h5.4l1.1 3H14L8 1.5zm-2.1 8L8 4.2l2.1 5.3H5.9z"/>
+          </svg>
+          <svg viewBox="0 0 10 6" width="9" height="9" class="drop-arr"><path d="M0 0l5 6 5-6z"/></svg>
+        </div>
+        <div class="color-bar" id="textColorBar" style="width:17px;background:#000000;"></div>
+      </button>
+      <div class="color-picker-popup" id="textColorPicker">
+        <div class="color-picker-none" id="textColorNone">
+          <div class="color-picker-none-icon"></div>
+          없음
+        </div>
+        <div class="color-grid" id="textColorGrid"></div>
+      </div>
+    </div>
+
+    <!-- Highlight button: pen icon -->
+    <div class="color-wrap" id="highlightWrap">
+      <button class="tb-color-btn" id="tbHighlightApply" title="하이라이트 적용">
+        <div class="tb-color-btn-top">
+          <!-- Pen/highlighter SVG matching Google Docs -->
+          <svg viewBox="0 0 16 16" width="17" height="17" fill="#202124">
+            <path d="M13.5 1.5a1.5 1.5 0 0 0-2.12 0L2 10.88V14h3.12l9.38-9.38a1.5 1.5 0 0 0 0-2.12zM4.5 12.5H3.5v-1l7.5-7.5 1 1-7.5 7.5z"/>
+          </svg>
+          <svg viewBox="0 0 10 6" width="9" height="9" class="drop-arr"><path d="M0 0l5 6 5-6z"/></svg>
+        </div>
+        <div class="color-bar" id="highlightBar" style="width:17px;background:#ffff00;"></div>
+      </button>
+      <div class="color-picker-popup" id="highlightPicker">
+        <div class="color-picker-none" id="highlightNone">
+          <div class="color-picker-none-icon"></div>
+          없음
+        </div>
+        <div class="color-grid" id="highlightGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-bar" id="tabsBar"></div>
+
+  <!-- Editor content -->
+  <div class="editor-body">
+    <div class="page-wrap">
+      <div class="doc-page" id="docBody" contenteditable="true" data-placeholder="내용을 입력하세요..."></div>
+    </div>
+  </div>
+</div>
+
+<div class="saved-flash" id="savedFlash">✓ 저장됨</div>
+<div class="sync-badge" id="syncBadge">🔄 동기화 중...</div>
+
+<!-- Firebase module bridge -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getDatabase, ref, onValue, set, onDisconnect, off } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  window._FB = { initializeApp, getDatabase, ref, onValue, set, onDisconnect, off, getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, onAuthStateChanged, signOut };
+  window.dispatchEvent(new Event('fb-ready'));
+</script>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// ── State ──────────────────────────────────────────────
+let db=null, auth=null, currentUser=null;
+let myName='익명', myId='u_'+Math.random().toString(36).slice(2,7);
+let mode=null, currentRoom=null, currentTab=0;
+let isRemoteUpdate=false, typingTimer, saveTimer;
+let activeListeners=[], bc=null;
+
+// Tabs state: [{id, title, content}]
+let tabs = [];
+
+// ── Color palettes ─────────────────────────────────────
+// Google Docs EXACT 8×10 = 80 colors, zero duplicates
+// Col:  1-neutral | 2-red | 3-orange | 4-yellow | 5-green | 6-teal | 7-blue | 8-navy | 9-purple | 10-pink/brown
+
+const GDOCS_TEXT_COLORS = [
+  // Row 1: Neutrals dark→light
+  '#000000','#434343','#666666','#999999','#b7b7b7','#cccccc','#d9d9d9','#efefef','#f3f3f3','#ffffff',
+  // Row 2: Pure vivid colors
+  '#ff0000','#ff9900','#ffff00','#00ff00','#00ffff','#4a86e8','#0000ff','#9900ff','#ff00ff','#e6b8a2',
+  // Row 3: Lightest tints
+  '#f4cccc','#fce5cd','#fff2cc','#d9ead3','#d0e0e3','#cfe2f3','#c9daf8','#d9d2e9','#ead1dc','#dd7e6b',
+  // Row 4: Light-mid
+  '#ea9999','#f9cb9c','#ffe599','#b6d7a8','#a2c4c9','#9fc5e8','#a4c2f4','#b4a7d6','#d5a6bd','#cc4125',
+  // Row 5: Mid
+  '#e06666','#f6b26b','#ffd966','#93c47d','#76a5af','#6fa8dc','#6d9eeb','#8e7cc3','#c27ba0','#a61c00',
+  // Row 6: Mid-dark
+  '#cc0000','#e69138','#f1c232','#6aa84f','#45818e','#3d85c8','#3c78d8','#674ea7','#a64d79','#85200c',
+  // Row 7: Dark
+  '#990000','#b45309','#bf9000','#38761d','#245e6b','#0b5394','#1c4587','#351c75','#741b47','#5b0f00',
+  // Row 8: Darkest
+  '#660000','#783f04','#7f6000','#274e13','#0c343d','#073763','#20124d','#4c1130','#3c1f5e','#2c1503',
+];
+
+const GDOCS_HIGHLIGHT_COLORS = [
+  // Row 1: Neutrals
+  '#000000','#434343','#666666','#999999','#b7b7b7','#cccccc','#d9d9d9','#efefef','#f3f3f3','#ffffff',
+  // Row 2: Vivid
+  '#ff0000','#ff9900','#ffff00','#00ff00','#00ffff','#4a86e8','#0000ff','#9900ff','#ff00ff','#e6b8a2',
+  // Row 3
+  '#f4cccc','#fce5cd','#fff2cc','#d9ead3','#d0e0e3','#cfe2f3','#c9daf8','#d9d2e9','#ead1dc','#dd7e6b',
+  // Row 4
+  '#ea9999','#f9cb9c','#ffe599','#b6d7a8','#a2c4c9','#9fc5e8','#a4c2f4','#b4a7d6','#d5a6bd','#cc4125',
+  // Row 5
+  '#e06666','#f6b26b','#ffd966','#93c47d','#76a5af','#6fa8dc','#6d9eeb','#8e7cc3','#c27ba0','#a61c00',
+  // Row 6
+  '#cc0000','#e69138','#f1c232','#6aa84f','#45818e','#3d85c8','#3c78d8','#674ea7','#a64d79','#85200c',
+  // Row 7
+  '#990000','#b45309','#bf9000','#38761d','#245e6b','#0b5394','#1c4587','#351c75','#741b47','#5b0f00',
+  // Row 8
+  '#660000','#783f04','#7f6000','#274e13','#0c343d','#073763','#20124d','#4c1130','#3c1f5e','#2c1503',
+];
+
+const LIGHT_COLORS = new Set([
+  '#ffffff','#f3f3f3','#efefef','#d9d9d9','#cccccc','#b7b7b7','#999999',
+  '#f4cccc','#fce5cd','#fff2cc','#d9ead3','#d0e0e3','#cfe2f3','#c9daf8','#d9d2e9','#ead1dc','#e6b8a2',
+  '#ea9999','#f9cb9c','#ffe599','#b6d7a8','#a2c4c9','#9fc5e8','#a4c2f4','#b4a7d6','#d5a6bd',
+  '#ffff00','#00ffff','#00ff00',
+]);
+
+let currentTextColor = '#000000';
+let currentHighlightColor = '#ffff00';
+
+function buildColorGrid(gridId, palette, getCurrentColor, onPick) {
+  const grid = $(gridId);
+  grid.innerHTML = '';
+  palette.forEach(color => {
+    const d = document.createElement('div');
+    d.className = 'cp-color';
+    if (LIGHT_COLORS.has(color.toLowerCase())) d.classList.add('light-color');
+    d.style.background = color;
+    d.title = color;
+    if (color.toLowerCase() === getCurrentColor().toLowerCase()) d.classList.add('selected');
+    d.addEventListener('click', () => onPick(color));
+    grid.appendChild(d);
+  });
+}
+
+function refreshGrid(gridId, palette, getCurrentColor) {
+  const grid = $(gridId);
+  const cells = grid.querySelectorAll('.cp-color');
+  cells.forEach((cell, i) => {
+    const color = palette[i];
+    cell.classList.toggle('selected', color && color.toLowerCase() === getCurrentColor().toLowerCase());
+  });
+}
+
+function initColorPickers() {
+  buildColorGrid('textColorGrid', GDOCS_TEXT_COLORS, () => currentTextColor, (color) => {
+    currentTextColor = color;
+    $('textColorBar').style.background = color;
+    document.execCommand('foreColor', false, color);
+    $('textColorPicker').classList.remove('open');
+    scheduleSave();
+  });
+  $('textColorNone').addEventListener('click', () => {
+    document.execCommand('removeFormat');
+    currentTextColor = '#000000';
+    $('textColorBar').style.background = '#000000';
+    refreshGrid('textColorGrid', GDOCS_TEXT_COLORS, () => currentTextColor);
+    $('textColorPicker').classList.remove('open');
+    scheduleSave();
+  });
+
+  buildColorGrid('highlightGrid', GDOCS_HIGHLIGHT_COLORS, () => currentHighlightColor, (color) => {
+    currentHighlightColor = color;
+    $('highlightBar').style.background = color;
+    document.execCommand('hiliteColor', false, color);
+    $('highlightPicker').classList.remove('open');
+    scheduleSave();
+  });
+  $('highlightNone').addEventListener('click', () => {
+    document.execCommand('hiliteColor', false, 'transparent');
+    currentHighlightColor = '#ffff00';
+    $('highlightBar').style.background = '#ffff00';
+    refreshGrid('highlightGrid', GDOCS_HIGHLIGHT_COLORS, () => currentHighlightColor);
+    $('highlightPicker').classList.remove('open');
+    scheduleSave();
+  });
+}
+initColorPickers();
+
+// ── Toolbar ────────────────────────────────────────────
+$('tbBold').addEventListener('click', () => { document.execCommand('bold'); updateToolbarState(); scheduleSave(); });
+$('tbUnderline').addEventListener('click', () => { document.execCommand('underline'); updateToolbarState(); scheduleSave(); });
+
+// Text color button — clicking icon part applies color, clicking arrow opens picker
+$('tbTextColorApply').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isArrow = e.target.closest('.drop-arr') || e.offsetX > 20;
+  if (isArrow) {
+    refreshGrid('textColorGrid', GDOCS_TEXT_COLORS, () => currentTextColor);
+    $('textColorPicker').classList.toggle('open');
+    $('highlightPicker').classList.remove('open');
+  } else {
+    document.execCommand('foreColor', false, currentTextColor);
+    scheduleSave();
+  }
+});
+
+// Highlight button — clicking icon part applies color, clicking arrow opens picker
+$('tbHighlightApply').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isArrow = e.target.closest('.drop-arr') || e.offsetX > 20;
+  if (isArrow) {
+    refreshGrid('highlightGrid', GDOCS_HIGHLIGHT_COLORS, () => currentHighlightColor);
+    $('highlightPicker').classList.toggle('open');
+    $('textColorPicker').classList.remove('open');
+  } else {
+    document.execCommand('hiliteColor', false, currentHighlightColor);
+    scheduleSave();
+  }
+});
+
+document.addEventListener('click', () => {
+  $('highlightPicker').classList.remove('open');
+  $('textColorPicker').classList.remove('open');
+});
+
+$('fontSizeSelect').addEventListener('change', function() {
+  document.execCommand('fontSize', false, '7');
+  const els = $('docBody').querySelectorAll('font[size="7"]');
+  els.forEach(el => { el.removeAttribute('size'); el.style.fontSize = this.value + 'pt'; });
+  scheduleSave();
+});
+
+$('docBody').addEventListener('keyup', updateToolbarState);
+$('docBody').addEventListener('mouseup', updateToolbarState);
+$('docBody').addEventListener('selectionchange', updateToolbarState);
+
+function updateToolbarState() {
+  $('tbBold').classList.toggle('active', document.queryCommandState('bold'));
+  $('tbUnderline').classList.toggle('active', document.queryCommandState('underline'));
+}
+
+// ── Firebase setup ─────────────────────────────────────
+window.addEventListener('fb-ready', () => { $('btnFirebase').addEventListener('click', initFirebase); });
+
+function initFirebase() {
+  const F = window._FB;
+  const apiKey = $('cfg-apiKey').value.trim();
+  const projectId = $('cfg-projectId').value.trim();
+  const authDomain = $('cfg-authDomain').value.trim() || `${projectId}.firebaseapp.com`;
+  if (!apiKey || !projectId) { alert('API Key와 Project ID를 입력해 주세요.'); return; }
+  try {
+    const app = F.initializeApp({ apiKey, authDomain, databaseURL:`https://${projectId}-default-rtdb.firebaseio.com`, projectId });
+    window._projectId = projectId;
+    db = F.getDatabase(app);
+    auth = F.getAuth(app);
+    mode = 'firebase';
+    $('overlay').classList.add('hidden');
+    $('authOverlay').classList.remove('hidden');
+    F.onAuthStateChanged(auth, user => { if (user) onUserSignedIn(user); });
+    $('btnGoogleSignIn').addEventListener('click', signInWithGoogle);
+    $('btnAnon').addEventListener('click', signInAnon);
+    $('btnSignOut').addEventListener('click', doSignOut);
+  } catch(err) { alert('Firebase 연결 실패: ' + err.message); }
+}
+
+async function signInWithGoogle() {
+  const F = window._FB;
+  $('authLoading').style.display = 'block';
+  try {
+    await F.signInWithPopup(auth, new F.GoogleAuthProvider());
+  } catch(err) {
+    $('authLoading').style.display = 'none';
+    if (err.code !== 'auth/popup-closed-by-user') alert('로그인 실패: ' + err.message);
+  }
+}
+async function signInAnon() {
+  const F = window._FB;
+  $('authLoading').style.display = 'block';
+  try { await F.signInAnonymously(auth); }
+  catch(err) { $('authLoading').style.display = 'none'; alert('오류: ' + err.message); }
+}
+async function doSignOut() {
+  $('userDropdown').classList.remove('open');
+  await window._FB.signOut(auth);
+  currentUser = null;
+  $('userChip').style.display = 'none';
+  $('authOverlay').classList.remove('hidden');
+}
+
+function onUserSignedIn(user) {
+  currentUser = user;
+  $('authOverlay').classList.add('hidden');
+  $('authLoading').style.display = 'none';
+  myName = user.isAnonymous ? '익명 사용자' : (user.displayName || user.email || '사용자');
+  myId = 'u_' + user.uid.slice(0, 8);
+  updateUserChip(user);
+  setStatus(true, '연결됨');
+  if (!window._editorBound) { bindEditor(); window._editorBound = true; }
+  // Route based on current URL
+  routeFromURL();
+}
+
+function updateUserChip(user) {
+  $('userChip').style.display = 'flex';
+  $('dropdownName').textContent = myName;
+  $('dropdownEmail').textContent = user.isAnonymous ? '익명으로 로그인됨' : (user.email || '');
+  $('userAvatarPh').textContent = myName.slice(0,1).toUpperCase();
+  if (user.photoURL) {
+    $('userAvatarImg').src = user.photoURL;
+    $('userAvatarImg').style.display = 'block';
+    $('userAvatarPh').style.display = 'none';
+  } else {
+    $('userAvatarImg').style.display = 'none';
+    $('userAvatarPh').style.display = 'flex';
+  }
+}
+
+// ── Demo mode ──────────────────────────────────────────
+function startDemo() {
+  mode = 'demo'; myName = '편집자';
+  $('overlay').classList.add('hidden');
+  $('userChip').style.display = 'flex';
+  $('userAvatarPh').textContent = '✦'; $('userAvatarPh').style.display = 'flex';
+  $('userAvatarImg').style.display = 'none';
+  $('dropdownName').textContent = '데모 모드'; $('dropdownEmail').textContent = '로그인 없이 사용 중';
+  setStatus(true, '데모 모드');
+  renderHome(); showPage('homePage');
+  if (!window._editorBound) { bindEditor(); window._editorBound = true; }
+}
+
+// ── User dropdown ──────────────────────────────────────
+$('userChip').addEventListener('click', () => $('userDropdown').classList.toggle('open'));
+document.addEventListener('click', e => { if (!$('userChip').contains(e.target)) $('userDropdown').classList.remove('open'); });
+
+// ── Pages ──────────────────────────────────────────────
+function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); $(id).classList.add('active'); }
+
+// ── localStorage helpers ───────────────────────────────
+function uidKey() { return currentUser && !currentUser.isAnonymous ? currentUser.uid : 'local'; }
+function getIndex() { try { return JSON.parse(localStorage.getItem('nd_index_'+uidKey())||'[]'); } catch(e){return[];} }
+function saveIndex(idx) { localStorage.setItem('nd_index_'+uidKey(), JSON.stringify(idx)); }
+function getDocData(id) { try { return JSON.parse(localStorage.getItem('nd_doc_'+id)||'{}'); } catch(e){return{};} }
+function saveDocData(id, data) { localStorage.setItem('nd_doc_'+id, JSON.stringify(data)); }
+
+function touchDoc(id, title, tabs) {
+  let idx = getIndex().filter(d => d.id !== id);
+  const preview = tabs && tabs[0] ? (tabs[0].content||'').replace(/<[^>]+>/g,'').slice(0,80) : '';
+  idx.unshift({ id, title: title||'제목 없는 문서', preview, updatedAt: Date.now() });
+  saveIndex(idx.slice(0,30));
+}
+function deleteDoc(id) {
+  saveIndex(getIndex().filter(d => d.id !== id));
+  localStorage.removeItem('nd_doc_'+id);
+  renderHome();
+}
+
+// ── Home ───────────────────────────────────────────────
+function renderHome() {
+  const idx = getIndex();
+  const c = $('recentDocs');
+  if (!idx.length) {
+    c.innerHTML = `<div class="empty-state"><span class="big">📄</span>아직 문서가 없습니다.<br>위에서 빈 문서를 눌러 시작해 보세요!</div>`;
+    return;
+  }
+  c.innerHTML = `<div class="doc-list">${idx.map(d=>`
+    <div class="doc-row" data-id="${d.id}">
+      <div class="doc-row-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></div>
+      <div class="doc-row-info">
+        <div class="doc-row-title">${esc(d.title||'제목 없는 문서')}</div>
+        <div class="doc-row-meta">${relTime(d.updatedAt)}</div>
+      </div>
+      <button class="doc-row-del" data-del="${d.id}" title="삭제">✕</button>
+    </div>`).join('')}</div>`;
+  c.querySelectorAll('.doc-row').forEach(row => {
+    row.addEventListener('click', e => { if (!e.target.closest('[data-del]')) openDoc(row.dataset.id); });
+  });
+  c.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); if(confirm('삭제할까요?')) deleteDoc(btn.dataset.del); });
+  });
+}
+
+// ── New doc ────────────────────────────────────────────
+$('btnNewDoc').addEventListener('click', () => { $('newDocTitle').value=''; $('newDocOverlay').classList.remove('hidden'); setTimeout(()=>$('newDocTitle').focus(),50); });
+$('btnCancelNew').addEventListener('click', () => $('newDocOverlay').classList.add('hidden'));
+$('newDocTitle').addEventListener('keydown', e => { if(e.key==='Enter') createDoc(); });
+$('btnCreate').addEventListener('click', createDoc);
+function createDoc() {
+  const title = $('newDocTitle').value.trim() || '제목 없는 문서';
+  const id = 'doc_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+  const initialTabs = [{id:'tab_1',title:'탭 1',content:''}];
+  saveDocData(id, { title, tabs: initialTabs });
+  touchDoc(id, title, initialTabs);
+  $('newDocOverlay').classList.add('hidden');
+  openDoc(id);
+}
+
+// ── Open doc ───────────────────────────────────────────
+function openDoc(id, pushState=true) {
+  currentRoom = id;
+  tabs = [];
+  currentTab = 0;
+  showPage('editorPage');
+  loadDocLocal();
+  if (mode==='firebase') { listenFirebase(); trackPresence(); }
+  // Update URL
+  if (pushState) {
+    history.pushState({ docId: id }, '', '/doc/' + id);
+  }
+}
+
+function loadDocLocal() {
+  const data = getDocData(currentRoom);
+  $('docTitle').value = data.title || '';
+  tabs = data.tabs || [{id:'tab_1',title:'탭 1',content:''}];
+  if (currentTab >= tabs.length) currentTab = 0;
+  renderTabs();
+  loadTabContent();
+  updateMeta();
+}
+
+// ── Tabs ───────────────────────────────────────────────
+function renderTabs() {
+  const bar = $('tabsBar');
+  bar.innerHTML = tabs.map((t,i) => `
+    <div class="tab${i===currentTab?' active':''}" data-i="${i}">
+      ${esc(t.title)}
+      ${tabs.length>1?`<button class="tab-close" data-close="${i}">✕</button>`:''}
+    </div>`).join('') +
+    `<div class="tab-add" id="tabAdd" title="탭 추가">＋</div>`;
+  bar.querySelectorAll('.tab[data-i]').forEach(tab => {
+    tab.addEventListener('click', e => { if(!e.target.closest('[data-close]')) switchTab(+tab.dataset.i); });
+  });
+  bar.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); closeTab(+btn.dataset.close); });
+  });
+  $('tabAdd').addEventListener('click', addTab);
+}
+
+function switchTab(i) {
+  saveCurrentTabContent();
+  currentTab = i;
+  renderTabs();
+  loadTabContent();
+}
+
+function addTab() {
+  saveCurrentTabContent();
+  const newTab = { id:'tab_'+Date.now(), title:`탭 ${tabs.length+1}`, content:'' };
+  tabs.push(newTab);
+  currentTab = tabs.length - 1;
+  renderTabs();
+  loadTabContent();
+  scheduleSave();
+}
+
+function closeTab(i) {
+  if (tabs.length === 1) return;
+  tabs.splice(i, 1);
+  if (currentTab >= tabs.length) currentTab = tabs.length - 1;
+  renderTabs();
+  loadTabContent();
+  scheduleSave();
+}
+
+function saveCurrentTabContent() {
+  if (tabs[currentTab]) tabs[currentTab].content = $('docBody').innerHTML;
+}
+
+function loadTabContent() {
+  $('docBody').innerHTML = tabs[currentTab]?.content || '';
+}
+
+// ── Editor events ──────────────────────────────────────
+function bindEditor() {
+  $('docTitle').addEventListener('input', () => { if(isRemoteUpdate)return; scheduleSave(); });
+  $('docBody').addEventListener('input', () => { if(isRemoteUpdate)return; scheduleSave(); signalTyping(); });
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveContent, 800);
+}
+
+function saveContent() {
+  saveCurrentTabContent();
+  const data = { title: $('docTitle').value, tabs, updatedAt: Date.now() };
+  saveDocData(currentRoom, data);
+  touchDoc(currentRoom, data.title, data.tabs);
+  if (mode==='firebase'&&db) {
+    const {ref,set}=window._FB;
+    set(ref(db,`docs/${currentRoom}/content`), { title:data.title, tabs: JSON.stringify(tabs), updatedAt:Date.now() });
+  }
+  if (mode==='demo'&&bc) bc.postMessage({type:'content',room:currentRoom,data:{title:data.title,tabs},from:myId});
+  flashSaved();
+}
+
+function getDocContent() { return { title:$('docTitle').value, tabs }; }
+
+// ── Firebase DB listeners ──────────────────────────────
+function listenFirebase() {
+  const {ref,onValue,off}=window._FB;
+  activeListeners.forEach(([r,fn])=>off(r,'value',fn)); activeListeners=[];
+  const docRef=ref(db,`docs/${currentRoom}/content`);
+  const fn1=onValue(docRef,snap=>{
+    const v=snap.val(); if(!v)return;
+    isRemoteUpdate=true;
+    if($('docTitle').value!==(v.title||'')) $('docTitle').value=v.title||'';
+    try {
+      const remoteTabs = typeof v.tabs==='string' ? JSON.parse(v.tabs) : v.tabs;
+      if (remoteTabs && JSON.stringify(remoteTabs)!==JSON.stringify(tabs)) {
+        tabs=remoteTabs;
+        renderTabs(); loadTabContent();
+      }
+    } catch(e){}
+    updateMeta(); isRemoteUpdate=false; flashSaved();
+  });
+  activeListeners.push([docRef,fn1]);
+  const typRef=ref(db,`docs/${currentRoom}/typing`);
+  const fn2=onValue(typRef,snap=>{
+    const v=snap.val();
+    if(!v){hideTyping();return;}
+    const others=Object.entries(v).filter(([k])=>k!==myId);
+    others.length?showTyping(others[0][1]):hideTyping();
+  });
+  activeListeners.push([typRef,fn2]);
+  const presRef=ref(db,`docs/${currentRoom}/presence`);
+  const fn3=onValue(presRef,snap=>{
+    const v=snap.val();
+    $('userCount').textContent=v?`${Object.keys(v).length}명 접속 중`:'';
+  });
+  activeListeners.push([presRef,fn3]);
+}
+function trackPresence() {
+  const {ref,set,onDisconnect}=window._FB;
+  const r=ref(db,`docs/${currentRoom}/presence/${myId}`);
+  set(r,{name:myName,joined:Date.now()}); onDisconnect(r).remove();
+}
+
+// ── BroadcastChannel ───────────────────────────────────
+function onBCMessage({data:msg}) {
+  if(msg.from===myId)return;
+  if(msg.type==='content'&&msg.room===currentRoom) {
+    isRemoteUpdate=true;
+    if($('docTitle').value!==msg.data.title) $('docTitle').value=msg.data.title;
+    if(msg.data.tabs&&JSON.stringify(msg.data.tabs)!==JSON.stringify(tabs)) {
+      tabs=msg.data.tabs; renderTabs(); loadTabContent();
+    }
+    updateMeta(); isRemoteUpdate=false; flashSaved();
+  }
+  if(msg.type==='typing'&&msg.room===currentRoom) showTyping(msg.data.name);
+  if(msg.type==='stopped'&&msg.room===currentRoom) hideTyping();
+}
+
+// ── Back / nav ─────────────────────────────────────────
+$('btnBack').addEventListener('click', goHome);
+$('brandHome').addEventListener('click', () => { if($('editorPage').classList.contains('active')) goHome(); });
+function goHome(pushState=true) {
+  if (currentRoom) { saveCurrentTabContent(); saveContent(); }
+  if(bc){bc.close();bc=null;}
+  if(mode==='firebase'){const{off}=window._FB;activeListeners.forEach(([r,fn])=>off(r,'value',fn));activeListeners=[];}
+  currentRoom = null;
+  renderHome(); showPage('homePage');
+  if (pushState) history.pushState({}, '', '/');
+}
+
+// ── Typing ─────────────────────────────────────────────
+function signalTyping() {
+  if(mode==='firebase'&&db){const{ref,set,onDisconnect}=window._FB;const r=ref(db,`docs/${currentRoom}/typing/${myId}`);set(r,myName);onDisconnect(r).remove();}
+  if(mode==='demo'&&bc) bc.postMessage({type:'typing',room:currentRoom,data:{name:myName},from:myId});
+  clearTimeout(typingTimer);
+  typingTimer=setTimeout(()=>{
+    if(mode==='firebase'&&db){const{ref,set}=window._FB;set(ref(db,`docs/${currentRoom}/typing/${myId}`),null);}
+    if(mode==='demo'&&bc) bc.postMessage({type:'stopped',room:currentRoom,from:myId});
+  },2000);
+}
+function showTyping(name) {
+  $('typingIndicator').textContent=`${name} 입력 중...`;
+  $('typingIndicator').classList.add('visible');
+}
+function hideTyping() { $('typingIndicator').classList.remove('visible'); }
+
+// ── Utils ──────────────────────────────────────────────
+function setStatus(online,label){$('connDot').className='conn-dot'+(online?' online':'');$('connLabel').textContent=label;}
+function updateMeta(){const n=new Date();$('editorMeta').textContent=`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')} 저장됨`;}
+function flashSaved(){$('savedFlash').classList.add('show');setTimeout(()=>$('savedFlash').classList.remove('show'),1500);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function relTime(ts){if(!ts)return'';const d=Math.floor((Date.now()-ts)/1000);if(d<60)return'방금 전';if(d<3600)return Math.floor(d/60)+'분 전';if(d<86400)return Math.floor(d/3600)+'시간 전';return Math.floor(d/86400)+'일 전';}
+
+// ── Share Modal ────────────────────────────────────────
+// sharedUsers: [{email, role, name, color}]
+let sharedUsers = [];
+
+const AVATAR_COLORS = ['#1a73e8','#34a853','#ea4335','#fbbc04','#9c27b0','#00897b','#e91e63','#ff5722'];
+function avatarColor(email) {
+  let h = 0;
+  for (let c of email) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+function avatarInitial(email) { return email.slice(0,1).toUpperCase(); }
+
+function openShareModal() {
+  const docTitle = $('docTitle').value || '제목 없는 문서';
+  $('shareModalTitle').textContent = `"${docTitle}" 공유`;
+  $('shareSendTitle').textContent   = `"${docTitle}" 공유`;
+  renderShareUserList();
+  showMainScreen();
+  $('shareOverlay').classList.remove('hidden');
+  $('shareEmailInput').value = '';
+}
+
+function closeShareModal() {
+  $('shareOverlay').classList.add('hidden');
+}
+
+function showMainScreen() {
+  $('shareMainScreen').classList.remove('hidden-screen');
+  $('shareSendScreen').classList.remove('active');
+}
+
+function showSendScreen(email) {
+  $('shareMainScreen').classList.add('hidden-screen');
+  $('shareSendScreen').classList.add('active');
+  // Build tag
+  const row = $('shareTagRow');
+  row.innerHTML = '';
+  const tag = document.createElement('div');
+  tag.className = 'share-email-tag';
+  tag.innerHTML = `
+    <div class="tag-avatar" style="background:${avatarColor(email)}">${avatarInitial(email)}</div>
+    <span>${email}</span>
+    <button class="share-tag-remove" id="shareTagRemove">✕</button>`;
+  row.appendChild(tag);
+  $('shareTagRemove').addEventListener('click', () => {
+    showMainScreen();
+    $('shareEmailInput').value = '';
+  });
+  $('shareMessageBox').value = '';
+  $('shareEmailNotify').checked = true;
+}
+
+function renderShareUserList() {
+  const list = $('shareUserList');
+  // Always show owner (current user) first
+  const ownerName = currentUser
+    ? (currentUser.isAnonymous ? '익명 사용자' : (currentUser.displayName || currentUser.email || '사용자'))
+    : '나';
+  const ownerEmail = currentUser && !currentUser.isAnonymous ? (currentUser.email || '') : '';
+  const ownerInitial = ownerName.slice(0,1).toUpperCase();
+  const ownerColor  = ownerEmail ? avatarColor(ownerEmail) : '#1a73e8';
+
+  let html = `
+    <div class="share-user-row">
+      <div class="share-user-avatar" style="background:${ownerColor}">${ownerInitial}</div>
+      <div class="share-user-info">
+        <div class="share-user-name">${esc(ownerName)} (you)</div>
+        ${ownerEmail ? `<div class="share-user-email">${esc(ownerEmail)}</div>` : ''}
+      </div>
+      <div class="share-user-role">소유자</div>
+    </div>`;
+
+  sharedUsers.forEach((u, i) => {
+    const roleLabel = u.role === 'editor' ? '편집자' : '뷰어';
+    html += `
+      <div class="share-user-row">
+        <div class="share-user-avatar" style="background:${avatarColor(u.email)}">${avatarInitial(u.email)}</div>
+        <div class="share-user-info">
+          <div class="share-user-name">${esc(u.email)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <select class="share-role-select" style="font-size:0.8rem;padding:4px 8px;" data-idx="${i}" onchange="changeSharedRole(this)">
+            <option value="viewer" ${u.role==='viewer'?'selected':''}>뷰어</option>
+            <option value="editor" ${u.role==='editor'?'selected':''}>편집자</option>
+            <option value="remove">삭제</option>
+          </select>
+        </div>
+      </div>`;
+  });
+
+  list.innerHTML = html;
+}
+
+function changeSharedRole(sel) {
+  const i = +sel.dataset.idx;
+  if (sel.value === 'remove') {
+    sharedUsers.splice(i, 1);
+  } else {
+    sharedUsers[i].role = sel.value;
+  }
+  renderShareUserList();
+}
+
+// initShareListeners는 DOM이 완전히 로드된 후 실행
+document.addEventListener('DOMContentLoaded', function() {
+
+  // ── Share listeners ──────────────────────────────────
+  function doCopyLink(e) {
+    e.stopPropagation();
+    const url = window.location.href;
+    const btn = e.currentTarget;
+    const orig = btn.innerHTML;
+    const done = () => {
+      btn.innerHTML = '<span style="font-size:0.875rem;font-family:Roboto,sans-serif;">✓ 복사됨!</span>';
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = url; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        try { document.execCommand('copy'); } catch(ex) {}
+        document.body.removeChild(ta); done();
+      });
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = url; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { document.execCommand('copy'); } catch(ex) {}
+      document.body.removeChild(ta); done();
+    }
+  }
+
+  // 이메일 입력 → Enter/쉼표 → 전송 화면
+  document.getElementById('shareEmailInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const email = this.value.trim().replace(/,$/, '');
+      if (email.includes('@')) showSendScreen(email);
+    }
+  });
+
+  // 뒤로가기
+  document.getElementById('shareBackBtn').addEventListener('click', function() {
+    showMainScreen();
+    document.getElementById('shareEmailInput').value = '';
+  });
+
+  // 취소
+  document.getElementById('shareCancelSend').addEventListener('click', function() {
+    showMainScreen();
+    document.getElementById('shareEmailInput').value = '';
+  });
+
+  // 전송 → Cloud Function으로 이메일 직접 발송
+  document.getElementById('shareDoSend').addEventListener('click', async function() {
+    const tag = document.querySelector('#shareTagRow .share-email-tag span');
+    if (!tag) return;
+    const email   = tag.textContent.trim();
+    const role    = document.getElementById('shareSendRole').value;
+    const notify  = document.getElementById('shareEmailNotify').checked;
+    const message = document.getElementById('shareMessageBox').value.trim();
+    const btn     = document.getElementById('shareDoSend');
+
+    if (!sharedUsers.find(function(u) { return u.email === email; })) {
+      sharedUsers.push({ email: email, role: role });
+    }
+
+    if (notify) {
+      const docTitle   = document.getElementById('docTitle').value || '제목 없는 문서';
+      const docUrl     = window.location.href;
+      const roleLabel  = role === 'editor' ? '편집자' : '뷰어';
+      const senderName = currentUser
+        ? (currentUser.displayName || currentUser.email || 'Nick')
+        : 'Nick';
+      const senderEmail = currentUser && !currentUser.isAnonymous
+        ? (currentUser.email || '') : '';
+
+      btn.disabled = true;
+      btn.textContent = '전송 중...';
+
+      try {
+        // projectId는 Firebase 초기화시 window._projectId에 저장
+        const projectId = window._projectId || '';
+        const region = 'us-central1';
+        const fnUrl = 'https://' + region + '-' + projectId + '.cloudfunctions.net/sendShareEmail';
+
+        const resp = await fetch(fnUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: email,
+            senderName: senderName,
+            senderEmail: senderEmail,
+            docTitle: docTitle,
+            docUrl: docUrl,
+            roleLabel: roleLabel,
+            message: message
+          })
+        });
+
+        if (resp.ok) {
+          btn.textContent = '✓ 전송됨!';
+          setTimeout(function() {
+            renderShareUserList();
+            showMainScreen();
+            document.getElementById('shareEmailInput').value = '';
+            btn.disabled = false;
+            btn.textContent = '전송';
+          }, 1500);
+        } else {
+          const err = await resp.json().catch(function() { return {}; });
+          throw new Error(err.error || '전송 실패');
+        }
+      } catch(e) {
+        btn.disabled = false;
+        btn.textContent = '전송';
+        alert('이메일 전송 실패: ' + e.message + '\n\nCloud Function이 배포되었는지 확인해 주세요.');
+      }
+    } else {
+      renderShareUserList();
+      showMainScreen();
+      document.getElementById('shareEmailInput').value = '';
+    }
+  });
+
+  // 링크 복사 버튼 두 개
+  document.getElementById('shareCopyLink').addEventListener('click', doCopyLink);
+  document.getElementById('shareCopyLink2').addEventListener('click', doCopyLink);
+
+  // 메인화면 전송 버튼 — 이메일 없이 그냥 닫기 (send screen에서 처리)
+  document.getElementById('shareDoneBtn').addEventListener('click', closeShareModal);
+
+  // 오버레이 바깥 클릭 → 닫기
+  document.getElementById('shareOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeShareModal();
+  });
+
+  // 공유 버튼
+  document.getElementById('btnShare').addEventListener('click', openShareModal);
+});
+
+
+// ── URL Routing ────────────────────────────────────────
+function routeFromURL() {
+  const path = window.location.pathname;
+  const match = path.match(/^\/doc\/([^/]+)$/);
+  if (match) {
+    const docId = match[1];
+    // Check doc exists locally; if not, still open (Firebase will load it)
+    renderHome();
+    openDoc(docId, false); // false = don't push state again
+  } else {
+    renderHome();
+    showPage('homePage');
+  }
+}
+
+// Handle browser back/forward
+window.addEventListener('popstate', (e) => {
+  if (!currentUser) return; // not logged in yet
+  const path = window.location.pathname;
+  const match = path.match(/^\/doc\/([^/]+)$/);
+  if (match) {
+    openDoc(match[1], false);
+  } else {
+    goHome(false);
+  }
+});
+
+</script>
+
+<!-- ══ SHARE MODAL ══ -->
+<div class="share-overlay hidden" id="shareOverlay">
+  <div class="share-modal">
+
+    <!-- MAIN SCREEN -->
+    <div class="share-main-screen" id="shareMainScreen">
+      <div class="share-modal-header">
+        <h2 id="shareModalTitle">"제목 없는 문서" 공유</h2>
+      </div>
+
+      <!-- Invite input: placeholder changed, no role select on main -->
+      <div class="share-invite-row">
+        <input class="share-email-box" id="shareEmailInput"
+          placeholder="사용자 추가" autocomplete="off" />
+        <select class="share-role-select" id="shareRoleSelect">
+          <option value="viewer">뷰어</option>
+          <option value="editor" selected>편집자</option>
+        </select>
+      </div>
+
+      <!-- Access list -->
+      <div class="share-access-section">
+        <div class="share-access-title">액세스 권한이 있는 사용자</div>
+        <div id="shareUserList"></div>
+      </div>
+
+      <div class="share-divider"></div>
+
+      <!-- General access -->
+      <div class="share-general-section">
+        <div class="share-general-title">일반 액세스</div>
+        <div class="share-general-row">
+          <div class="share-lock-icon">
+            <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+          </div>
+          <div class="share-general-info">
+            <div class="share-general-type">
+              제한됨
+              <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+            </div>
+            <div class="share-general-desc">액세스 권한이 있는 사용자만 링크로 열 수 있습니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="share-footer">
+        <button class="share-copy-link-btn" id="shareCopyLink">
+          <svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+          링크 복사
+        </button>
+        <button class="share-done-btn" id="shareDoneBtn">전송</button>
+      </div>
+    </div>
+
+    <!-- SEND INVITE SCREEN -->
+    <div class="share-send-screen" id="shareSendScreen">
+      <div class="share-send-header">
+        <button class="share-back-btn" id="shareBackBtn">
+          <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        </button>
+        <div class="share-send-title" id="shareSendTitle">"제목 없는 문서" 공유</div>
+      </div>
+
+      <!-- Email tag + role select same row -->
+      <div style="padding:0 24px 16px; display:flex; align-items:center; gap:8px;">
+        <div style="flex:1; border:1px solid #dadce0; border-radius:4px; padding:6px 10px; display:flex; align-items:center; flex-wrap:wrap; gap:4px; min-height:44px;">
+          <div id="shareTagRow" style="display:contents;"></div>
+        </div>
+        <select class="share-role-select-tag" id="shareSendRole">
+          <option value="viewer">뷰어</option>
+          <option value="editor" selected>편집자</option>
+        </select>
+      </div>
+
+      <!-- Checkbox -->
+      <div class="share-checkbox-row">
+        <input type="checkbox" id="shareEmailNotify" checked />
+        <label for="shareEmailNotify">이메일 알림 보내기</label>
+      </div>
+
+      <!-- Message -->
+      <textarea class="share-message-box" id="shareMessageBox" placeholder="메시지"></textarea>
+
+      <!-- Footer -->
+      <div class="share-send-footer">
+        <button class="share-copy-link-btn" id="shareCopyLink2">
+          <svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+        </button>
+        <div style="display:flex;gap:8px;">
+          <button class="share-cancel-btn" id="shareCancelSend">취소</button>
+          <button class="share-send-btn" id="shareDoSend">전송</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
