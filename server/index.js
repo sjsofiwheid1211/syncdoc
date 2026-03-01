@@ -10,10 +10,12 @@ app.use(express.json());
 
 // Gmail transporter — Railway 환경변수에서 읽어옴
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,   // Gmail 앱 비밀번호 16자리
+    pass: process.env.GMAIL_PASS,
   },
 });
 
